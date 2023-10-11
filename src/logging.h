@@ -6,8 +6,8 @@
 
 namespace codkit::logging {
     template <typename... T>
-    void Log(const std::string &fmt, T... args) {
-        // detours::Log(0, fmt.c_str(), args...);
-        // detours::Log(0, "\n");
+    void log(const std::string &fmt, T... args) {
+        game::log(0, fmt.c_str(), args...);
+        game::log(0, "\n");
     }
 } // namespace codkit::logging

@@ -3,6 +3,6 @@
 #include <string>
 
 namespace codkit::lua {
-    void Initialize();
-    void Run(const std::string &path);
+    void initialize();
+    void run(const std::string &path);
 } // namespace codkit::lua

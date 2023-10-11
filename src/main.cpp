@@ -1,12 +1,12 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
-#include <windows.h>
 
 #include "detours.h"
 #include "game.h"
-#include "logging.h"
-#include "lua.h"
 
 extern "C" int mainCRTStartup();
 
@@ -20,23 +20,13 @@ using namespace codkit;
 
 int main(int argc, char *argv[]) {
     if (Injected) {
-        detours::Initialize();
+        detours::initialize();
 
-        while (game::G_ConsoleWindow == nullptr)
+        while (game::g_console_window == nullptr)
             Sleep(100);
 
-        ShowWindow(codkit::game::G_ConsoleWindow, 1);
-
-        logging::Log("[codkit] initializing lua");
-        lua::Initialize();
-
-        if (Args[2] != nullptr) {
-            logging::Log("[codkit] running %s...", Args[2]);
-            lua::Run(Args[2]);
-        }
-
-        logging::Log("[codkit] startup complete; exiting thread");
-        TerminateThread(GetCurrentThread(), 0);
+        PostMessage(game::g_console_window, WM_USER, 12, 34);
+        ExitThread(0);
     }
 
     if (argc != 2 && argc != 3) {

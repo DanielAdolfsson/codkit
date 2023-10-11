@@ -1,6 +1,5 @@
 #pragma once
 
 namespace codkit::detours {
-    void Initialize();
-    void Log(int n, const char *fmt, ...);
+    void initialize();
 } // namespace codkit::detours

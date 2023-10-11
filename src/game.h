@@ -5,26 +5,22 @@
 #include <windows.h>
 
 namespace codkit::game {
-    union World {
-        struct {
-            char _0x0000[0x20];
-            int PlayerCount;
-        };
+    struct World {
+        char _0x0000[0x20];
+        int player_count;
     };
 
-    union Player {
-        struct {
-            int Status;
-            char _0x0004[0x10a40];
-            char Name[];
-        };
-
-        char data[371120];
+    struct Player {
+        int status;
+        char _4[68160];
+        char name[0];
+        char _68164[302956];
     };
 
-    extern HWND &G_ConsoleWindow;
+    extern HWND &g_console_window;
+    extern void (&log)(int, const char *, ...);
 
-    std::vector<Player *> GetPlayers();
-    void RegisterCommand(const std::string &name, void (*f)());
-    std::vector<std::string> GetCommandArgs();
+    std::vector<Player *> get_players();
+    void register_command(const std::string &name, void (*f)());
+    std::vector<std::string> get_command_args();
 } // namespace codkit::game

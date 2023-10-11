@@ -1,43 +1,48 @@
-#include <vector>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#include <vector>
 
 #include "address.h"
 #include "game.h"
 #include "logging.h"
 
 namespace codkit::game {
-    HWND &G_ConsoleWindow = Ref<HWND>(Address::Console_hWnd);
-    auto &G_World = Ref<World *>(Address::World);
-    auto &G_Players = Ref<Player (*)[]>(Address::Players);
-    auto &G_CArgc = Ref<int>(Address::CmdArgc);
-    auto &G_CArgv = Ref<char *[]>(Address::CmdArgv);
+    HWND &g_console_window = ref<HWND>(address::Console_hWnd);
+    auto &g_world = ref<World *>(address::World);
+    auto &g_players = ref<Player (*)[]>(address::Players);
+    auto &g_c_argc = ref<int>(address::CmdArgc);
+    auto &g_c_argv = ref<char *[]>(address::CmdArgv);
 
-    std::vector<Player *> GetPlayers() {
+    void (&log)(int, const char *, ...) =
+        ref<void(int, const char *, ...)>(address::DefLog);
+
+    std::vector<Player *> get_players() {
         std::vector<Player *> players;
 
-        if (G_Players == nullptr)
+        if (g_players == nullptr)
             return {};
 
-        for (auto i = 0; i < G_World->PlayerCount; i++) {
-            if ((*G_Players)[i].Status != 0)
-                players.emplace_back(&(*G_Players)[i]);
+        for (auto i = 0; i < g_world->player_count; i++) {
+            if ((*g_players)[i].status != 0)
+                players.emplace_back(&(*g_players)[i]);
         }
 
         return players;
     }
 
-    std::vector<std::string> GetCommandArgs() {
+    std::vector<std::string> get_command_args() {
         std::vector<std::string> result;
 
-        for (auto i = 0; i < G_CArgc; i++)
-            result.emplace_back(G_CArgv[i]);
+        for (auto i = 0; i < g_c_argc; i++)
+            result.emplace_back(g_c_argv[i]);
 
         return result;
     }
 
-    void RegisterCommand(const std::string &name, void (*fn)()) {
+    void register_command(const std::string &name, void (*fn)()) {
         static auto Impl =
-            Ref<void(const char *, decltype(fn))>(Address::RegisterCommand);
+            ref<void(const char *, decltype(fn))>(address::RegisterCommand);
         Impl(name.c_str(), fn);
     }
 } // namespace codkit::game
