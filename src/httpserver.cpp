@@ -3,6 +3,7 @@
 //
 
 #include "httpserver.h"
+#include "detours.h"
 #include "game.h"
 
 namespace codkit::http {
@@ -17,52 +18,19 @@ namespace codkit::http {
     void HttpServer::get(
         const std::string &pattern,
         const std::function<
-            void(const std::shared_ptr<const HttpRequest> &, std::shared_ptr<HttpResponse> &)>
+            void(const HttpRequest &, const std::shared_ptr<HttpResponse> &)>
             &handler
     ) {
         httplib::Server::Get(
             pattern,
             [=](const httplib::Request &request, httplib::Response &response) {
-                HttpContext context{
-                    .request = request,
-                    .response = response,
-                    .handler = handler};
-                SendMessage(
-                    game::g_console_window,
-                    WM_USER + 1,
-                    (WPARAM)&context,
-                    0
-                );
+                detours::run_on_main_thread([&]() {
+                    HttpRequest httpRequest{.body = request.body};
+                    auto httpResponse = std::make_shared<HttpResponse>();
+                    handler(httpRequest, httpResponse);
+                    response.body = httpResponse->body;
+                });
             }
         );
-    }
-
-    HttpRequest::HttpRequest(const httplib::Request *request)
-        : request(request) {
-    }
-
-    void HttpRequest::invalidate() {
-        request = nullptr;
-    }
-
-    const std::string &HttpRequest::get_body() const {
-        return request != nullptr ? request->body : empty_string;
-    }
-
-    HttpResponse::HttpResponse(httplib::Response *response)
-        : response(response) {
-    }
-
-    void HttpResponse::invalidate() {
-        response = nullptr;
-    }
-
-    const std::string &HttpResponse::get_body() const {
-        return response != nullptr ? response->body : empty_string;
-    }
-
-    void HttpResponse::set_body(const std::string &value) {
-        if (response != nullptr)
-            response->body = value;
     }
 } // namespace codkit::http

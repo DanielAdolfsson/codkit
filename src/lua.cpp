@@ -143,7 +143,7 @@ namespace codkit::lua {
     void initialize() {
         state.open_libraries();
 
-        state.set_exception_handler(&exception_handler);
+        //state.set_exception_handler(&exception_handler);
 
         state.set(
             "log",
@@ -170,17 +170,14 @@ namespace codkit::lua {
             "HttpRequest",
             sol::no_constructor,
             "body",
-            sol::property(&http::HttpRequest::get_body)
+            &http::HttpRequest::body
         );
 
         state.new_usertype<http::HttpResponse>(
             "HttpResponse",
             sol::no_constructor,
             "body",
-            sol::property(
-                &http::HttpResponse::get_body,
-                &http::HttpResponse::set_body
-            )
+            &http::HttpResponse::body
         );
 
         game::register_command(

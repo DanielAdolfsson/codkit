@@ -1,14 +1,14 @@
 #define WIN32_LEAN_AND_MEAN
-#include <cstdio>
 #include <windows.h>
+
+#include <cstdio>
+#include <stdexcept>
 
 #include <detours.h>
 
 #include "address.h"
 #include "game.h"
-#include "httpserver.h"
 #include "logging.h"
-#include "lua.h"
 
 extern char **Args;
 
@@ -21,31 +21,13 @@ namespace codkit::detours {
     static CALLBACK LRESULT
     WndProc_impl(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (uMsg == WM_USER) {
-            ShowWindow(game::g_console_window, 1);
-
-            logging::log("(codkit) startup");
-
-            logging::log("(codkit) initialize lua");
-            lua::initialize();
-
-            if (Args[2] != nullptr) {
-                logging::log("[codkit] running %s...", Args[2]);
-                lua::run(Args[2]);
+            try {
+                (*reinterpret_cast<std::function<void()> *>(wParam))();
+            } catch (const std::runtime_error& error) {
+                MessageBox(nullptr, error.what(), "Exception", MB_OK);
+            } catch (...) {
+                MessageBox(nullptr, "threw", nullptr, MB_OK);
             }
-
-            logging::log("(codkit) startup complete");
-            return 0;
-        }
-
-        if (uMsg == WM_USER + 1) {
-            const auto &context = *(http::HttpContext *)(wParam);
-            auto request =
-                std::make_shared<http::HttpRequest>(&context.request);
-            auto response =
-                std::make_shared<http::HttpResponse>(&context.response);
-            context.handler(request, response);
-            request->invalidate();
-            response->invalidate();
             return 0;
         }
 
@@ -66,6 +48,10 @@ namespace codkit::detours {
             buf[sizeof(buf) - 1] = 0;
 
         log(d, "%s", buf);
+    }
+
+    void run_on_main_thread(const std::function<void()> &function) {
+        SendMessage(game::g_console_window, WM_USER, (WPARAM)&function, 0);
     }
 
     void initialize() {
