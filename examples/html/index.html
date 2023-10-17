@@ -1,0 +1,56 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="normalize.css">
+    <style>
+        .base {
+            background: #565d64;
+            display: flex;
+            border-radius: 4px;
+            margin: 16px auto;
+            width: 800px;
+            padding: 16px;
+        }
+
+        .base > div {
+            flex-grow: 1;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .base > div > h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CoD</title>
+</head>
+<body>
+    <script src="jquery-3.7.1.min.js"></script>
+    <script>
+        setInterval(() => {
+            $.ajax({
+                dataType: "json",
+                url: "/status",
+                success: function(obj) {
+                    $("#axisScore").text(obj["Axis"]);
+                    $("#alliesScore").text(obj["Allies"]);
+                }
+            });
+        }, 1000);
+
+    </script>
+
+    <div class="base">
+        <div>
+            <h3>Axis</h3>
+            <span id="axisScore">##</span>
+        </div>
+        <div></div>
+        <div>
+            <h3>Allies</h3>
+            <span id="alliesScore">##</span>
+        </div>
+    </div>
+</body>
+</html>

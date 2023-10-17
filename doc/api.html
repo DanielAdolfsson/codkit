@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>ldoc</h1>
+
+
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Class_HttpServer">Class HttpServer </a></li>
+<li><a href="#Events">Events </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>global</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>global</code></h1>
+<p>(no description)</p>
+<p></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#GetPlayers">GetPlayers ()</a></td>
+	<td class="summary">Gets a list of currently connected players.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#CreateTimer">CreateTimer (callback, duration)</a></td>
+	<td class="summary">Create a new timer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#RequestScores">RequestScores ()</a></td>
+	<td class="summary">Request team scores from the server.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#exec">exec (command)</a></td>
+	<td class="summary">Execute a slash command.</td>
+	</tr>
+</table>
+<h2><a href="#Class_HttpServer">Class HttpServer </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#HttpServer.new">HttpServer.new ()</a></td>
+	<td class="summary">Create a new HttpServer object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#HttpServer:Listen">HttpServer:Listen (port)</a></td>
+	<td class="summary">Listen</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#HttpServer:Listen">HttpServer:Listen (port, host)</a></td>
+	<td class="summary">Listen</td>
+	</tr>
+</table>
+<h2><a href="#Events">Events </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#OnScoreUpdated">OnScoreUpdated (team, score)</a></td>
+	<td class="summary">Executed whenever a team's score has changed.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "GetPlayers"></a>
+    <strong>GetPlayers ()</strong>
+    </dt>
+    <dd>
+    Gets a list of currently connected players.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        list({ Name }}
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "CreateTimer"></a>
+    <strong>CreateTimer (callback, duration)</strong>
+    </dt>
+    <dd>
+    Create a new timer.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">callback</span>
+            <span class="types"><span class="type">function</span></span>
+         called when timer expires
+        </li>
+        <li><span class="parameter">duration</span>
+            <span class="types"><span class="type">number</span></span>
+         duration in milliseconds
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        number
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "RequestScores"></a>
+    <strong>RequestScores ()</strong>
+    </dt>
+    <dd>
+    Request team scores from the server.
+<p>
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "exec"></a>
+    <strong>exec (command)</strong>
+    </dt>
+    <dd>
+    Execute a slash command.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">command</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.4/manual.html#6.4">string</a></span>
+         command to execute
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Class_HttpServer"></a>Class HttpServer </h2>
+
+          <div class="section-description">
+          HttpServer class.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "HttpServer.new"></a>
+    <strong>HttpServer.new ()</strong>
+    </dt>
+    <dd>
+    Create a new HttpServer object.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        a HttpServer object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "HttpServer:Listen"></a>
+    <strong>HttpServer:Listen (port)</strong>
+    </dt>
+    <dd>
+    Listen
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">port</span>
+            <span class="types"><span class="type">number</span></span>
+         port
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "HttpServer:Listen"></a>
+    <strong>HttpServer:Listen (port, host)</strong>
+    </dt>
+    <dd>
+    Listen
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">port</span>
+            <span class="types"><span class="type">number</span></span>
+         port
+        </li>
+        <li><span class="parameter">host</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.4/manual.html#6.4">string</a></span>
+         host
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header has-description"><a name="Events"></a>Events </h2>
+
+          <div class="section-description">
+
+ The following functions will be executed if they have been defined.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "OnScoreUpdated"></a>
+    <strong>OnScoreUpdated (team, score)</strong>
+    </dt>
+    <dd>
+    Executed whenever a team's score has changed.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">team</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.4/manual.html#6.4">string</a></span>
+         either "Axis" or "Allies"
+        </li>
+        <li><span class="parameter">score</span>
+            <span class="types"><span class="type">number</span></span>
+         the new score
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/lunarmodules/LDoc">LDoc 1.5.0</a></i>
+<i style="float:right;">Last updated 2023-10-17 17:48:12 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

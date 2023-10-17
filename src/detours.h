@@ -3,6 +3,6 @@
 #include <functional>
 
 namespace codkit::detours {
-    void initialize();
-    void run_on_main_thread(const std::function<void()> &function);
+    void Initialize();
+    void Enqueue(const std::function<int()> &function);
 } // namespace codkit::detours

@@ -17,6 +17,8 @@ namespace codkit {
         RegisterCommand = 0x0042a870,
         CmdArgc = 0x008d5020,
         CmdArgv = 0x008d2620,
+        ServerHandler = 0x00401620,
+        ServerHandlerQueue = 0x18a9a68,
     };
 
     template <typename T>

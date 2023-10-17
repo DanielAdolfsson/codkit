@@ -8,7 +8,7 @@
 #include "detours.h"
 #include "game.h"
 #include "logging.h"
-#include "lua.h"
+#include "lua/base.h"
 
 extern "C" int mainCRTStartup();
 
@@ -22,25 +22,26 @@ using namespace codkit;
 
 int main(int argc, char *argv[]) {
     if (Injected) {
-        detours::initialize();
+        detours::Initialize();
 
-        while (game::g_console_window == nullptr)
+        while (game::gConsoleWnd == nullptr)
             Sleep(100);
 
-        detours::run_on_main_thread([]() {
-            ShowWindow(game::g_console_window, 1);
+        detours::Enqueue([]() {
+            ShowWindow(game::gConsoleWnd, 1);
 
-            logging::log("(codkit) startup");
+            logging::Logger{} << "(codkit) startup";
+            logging::Logger{} << "(codkit) Initialize lua";
 
-            logging::log("(codkit) initialize lua");
-            lua::initialize();
+            lua::Initialize();
 
             if (Args[2] != nullptr) {
-                logging::log("[codkit] running %s...", Args[2]);
+                logging::Logger{} << "[codkit] running " << Args[2] << "...";
                 lua::run(Args[2]);
             }
 
-            logging::log("(codkit) startup complete");
+            logging::Logger{} << "(codkit) startup complete";
+            return 0;
         });
 
         ExitThread(0);

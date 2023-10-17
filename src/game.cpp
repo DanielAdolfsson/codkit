@@ -8,41 +8,43 @@
 #include "logging.h"
 
 namespace codkit::game {
-    HWND &g_console_window = ref<HWND>(address::Console_hWnd);
-    auto &g_world = ref<World *>(address::World);
-    auto &g_players = ref<Player (*)[]>(address::Players);
-    auto &g_c_argc = ref<int>(address::CmdArgc);
-    auto &g_c_argv = ref<char *[]>(address::CmdArgv);
+    HWND &gConsoleWnd = ref<HWND>(address::Console_hWnd);
+    auto &gWorld = ref<World *>(address::World);
+    auto &gPlayers = ref<Player (*)[]>(address::Players);
+    auto &gCmdArgc = ref<int>(address::CmdArgc);
+    auto &gCmdArgv = ref<char *[]>(address::CmdArgv);
+    void *&gCommandQueue = ref<void *>(address::ServerHandlerQueue);
 
     void (&log)(int, const char *, ...) =
         ref<void(int, const char *, ...)>(address::DefLog);
 
-    std::vector<Player *> get_players() {
+    std::vector<Player *> GetPlayers() {
         std::vector<Player *> players;
 
-        if (g_players == nullptr)
+        if (gPlayers == nullptr)
             return {};
 
-        for (auto i = 0; i < g_world->player_count; i++) {
-            if ((*g_players)[i].status != 0)
-                players.emplace_back(&(*g_players)[i]);
+        for (auto i = 0; i < gWorld->player_count; i++) {
+            if ((*gPlayers)[i].status != 0)
+                players.emplace_back(&(*gPlayers)[i]);
         }
 
         return players;
     }
 
-    std::vector<std::string> get_command_args() {
+    std::vector<std::string> GetCommandArgs() {
         std::vector<std::string> result;
 
-        for (auto i = 0; i < g_c_argc; i++)
-            result.emplace_back(g_c_argv[i]);
+        for (auto i = 0; i < gCmdArgc; i++)
+            result.emplace_back(gCmdArgv[i]);
 
         return result;
     }
 
-    void register_command(const std::string &name, void (*fn)()) {
+    void RegisterCommand(const std::string &name, void (*fn)()) {
         static auto Impl =
             ref<void(const char *, decltype(fn))>(address::RegisterCommand);
         Impl(name.c_str(), fn);
     }
+
 } // namespace codkit::game

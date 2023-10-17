@@ -1,13 +1,23 @@
 #pragma once
 
+#include <sstream>
 #include <string>
 
 #include "detours.h"
 
 namespace codkit::logging {
-    template <typename... T>
-    void log(const std::string &fmt, T... args) {
-        game::log(0, fmt.c_str(), args...);
-        game::log(0, "\n");
-    }
+    class Logger {
+    private:
+        std::ostringstream s;
+
+    public:
+        void flush();
+        ~Logger();
+
+        template <typename T>
+        Logger &operator<<(const T &rhs) {
+            s << rhs;
+            return *this;
+        }
+    };
 } // namespace codkit::logging

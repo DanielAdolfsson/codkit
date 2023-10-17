@@ -2,39 +2,20 @@
 #include <windows.h>
 
 #include <map>
-#include <sstream>
 #include <string>
 
-#include <httplib.h>
 #define SOL_USING_CXX_LUA 1
-#include <sol/sol.hpp>
+#include "sol/sol.hpp"
 
-#include "address.h"
-#include "game.h"
+#include "../address.h"
+#include "../game.h"
+#include "../logging.h"
 #include "httpserver.h"
-#include "logging.h"
 
 namespace codkit::lua {
     static sol::state state;
 
     /*
-        /// LUA: Execute(string)
-        static int Impl_Execute(lua_State *) {
-            auto str = luaL_checkstring(L, 1);
-
-            char buf[512];
-            snprintf(buf, sizeof(buf), "%s\n", str);
-            buf[sizeof(buf) - 1] = 0;
-
-            // Optimized, so we can't call it normally.
-
-            __asm__("call %P1;"
-                    :
-                    : "a"(buf), "r"(&Ref<void *>(Address::Cbuf_AddText)));
-
-            return 0;
-        }
-
         static int Impl_RegisterCommand(lua_State *) {
             static std::map<std::string, lua_Integer> commands;
             auto command = luaL_checkstring(L, 1);
@@ -78,24 +59,26 @@ namespace codkit::lua {
 
     static std::map<UINT_PTR, std::function<void()>> timer_functions;
 
-    static auto impl_log(const sol::object &value) {
+    static auto impl_Log(const sol::object &value) {
         value.push();
-        logging::log("%s", luaL_tolstring(value.lua_state(), -1, nullptr));
+        logging::Logger{} << luaL_tolstring(value.lua_state(), -1, nullptr);
     }
 
     static auto impl_print(const sol::variadic_args &va) {
-        std::stringstream ss;
-        for (auto arg : va) {
-            if (ss.tellp() > 0)
-                ss << '\t';
+        logging::Logger logger{};
+        for (auto i = 0; i < va.size(); i++) {
+            if (i > 0)
+                logger << '\t';
 
-            ss << std::string{
-                luaL_tolstring(arg.lua_state(), arg.stack_index(), nullptr)};
+            logger << luaL_tolstring(
+                va[i].lua_state(),
+                va[i].stack_index(),
+                nullptr
+            );
         }
-        logging::log("%s", ss.str().c_str());
     }
 
-    static auto impl_create_timer(const std::function<void()> &fn, int time) {
+    static auto impl_CreateTimer(const std::function<void()> &fn, int time) {
         auto id = SetTimer(
             nullptr,
             0,
@@ -116,7 +99,7 @@ namespace codkit::lua {
         timer_functions[id] = fn;
     }
 
-    static auto impl_exec(const std::string &cmd) {
+    static auto impl_Exec(const std::string &cmd) {
         char buf[512];
         snprintf(buf, sizeof(buf), "%s\n", cmd.c_str());
         buf[sizeof(buf) - 1] = 0;
@@ -127,71 +110,103 @@ namespace codkit::lua {
                 : "a"(buf), "r"(&ref<void *>(address::Cbuf_AddText)));
     }
 
-    static auto impl_get_players() {
-        auto players = game::get_players();
+    static auto impl_GetPlayers() {
+        auto players = game::GetPlayers();
         auto table = state.create_table((int)std::size(players));
 
         for (int i = 0; i < std::size(players); i++) {
             table.add(
-                state.create_table_with("name", std::string{players[i]->name})
+                state.create_table_with("Name", std::string{players[i]->name})
             );
         }
 
         return table;
     }
 
-    void initialize() {
+    static auto impl_RequestScores() {
+        // Optimized, so we can't call it normally.
+        __asm__("call %P1;"
+                :
+                : "a"("score"), "r"(&ref<void *>(address::Cbuf_AddText)));
+    }
+
+    void UpdateScore(game::Team team, int score) {
+        try {
+            state[team == game::Team::Axis ? "Axis" : "Allies"] = score;
+            state["OnScoreUpdated"](
+                team == game::Team::Axis ? "Axis" : "Allies",
+                score
+            );
+        } catch (const sol::error &error) {
+            logging::Logger{} << "Fail:\n" << error.what();
+        }
+    }
+
+    void Initialize() {
         state.open_libraries();
 
-        //state.set_exception_handler(&exception_handler);
+        // state.set_exception_handler(&exception_handler);
 
         state.set(
-            "log",
-            impl_log,
+            "Log",
+            impl_Log,
             "print",
             impl_print,
-            "create_timer",
-            impl_create_timer,
+            "CreateTimer",
+            impl_CreateTimer,
             "exec",
-            impl_exec,
-            "get_players",
-            impl_get_players
+            impl_Exec,
+            "GetPlayers",
+            impl_GetPlayers,
+            "RequestScores",
+            impl_RequestScores
         );
 
-        state.new_usertype<http::HttpServer>(
+        state.new_usertype<HttpServer>(
             "HttpServer",
-            "get",
-            &http::HttpServer::get,
-            "listen",
-            &http::HttpServer::listen
+            "Get",
+            &HttpServer::Get,
+            "Mount",
+            &HttpServer::Mount,
+            "Listen",
+            sol::overload(
+                static_cast<void (HttpServer::*)(int port)>(&HttpServer::Listen
+                ),
+                static_cast<
+                    void (HttpServer::*)(int port, const std::string &host)>(
+                    &HttpServer::Listen
+                )
+            )
         );
 
-        state.new_usertype<http::HttpRequest>(
-            "HttpRequest",
+        state.new_usertype<HttpServerRequest>(
+            "HttpServerRequest",
             sol::no_constructor,
-            "body",
-            &http::HttpRequest::body
+            "Body",
+            sol::property(&HttpServerRequest::GetBody)
         );
 
-        state.new_usertype<http::HttpResponse>(
-            "HttpResponse",
-            sol::no_constructor,
-            "body",
-            &http::HttpResponse::body
+        state.new_usertype<HttpServerResponse>(
+            "HttpServerResponse",
+            sol::factories([]() {
+                return std::make_shared<HttpServerResponse>();
+            }),
+            "WithBody",
+            &HttpServerResponse::WithBody
         );
 
-        game::register_command(
+        game::RegisterCommand(
             "lua",
             +[]() {
-                auto args = game::get_command_args();
+                auto args = game::GetCommandArgs();
 
                 if (std::size(args) != 2)
-                    logging::log("Usage: lua <code>\n");
+                    logging::Logger{} << "Usage: lua <code>";
                 else {
                     try {
                         state.safe_script(args[1]);
                     } catch (const sol::error &e) {
-                        logging::log("--- lua ---\n%s", e.what());
+                        logging::Logger{} << "--- lua ---\n" << e.what();
                     }
                 }
             }
@@ -202,7 +217,7 @@ namespace codkit::lua {
         try {
             state.safe_script_file(path);
         } catch (const sol::error &e) {
-            logging::log("--- lua ---\n%s", e.what());
+            logging::Logger{} << "--- lua ---\n" << e.what();
         }
     }
 } // namespace codkit::lua

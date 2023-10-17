@@ -17,10 +17,16 @@ namespace codkit::game {
         char _68164[302956];
     };
 
-    extern HWND &g_console_window;
+    enum class Team {
+        Axis,
+        Allies
+    };
+
+    extern HWND &gConsoleWnd;
+    extern void *&gCommandQueue;
     extern void (&log)(int, const char *, ...);
 
-    std::vector<Player *> get_players();
-    void register_command(const std::string &name, void (*f)());
-    std::vector<std::string> get_command_args();
+    std::vector<Player *> GetPlayers();
+    void RegisterCommand(const std::string &name, void (*f)());
+    std::vector<std::string> GetCommandArgs();
 } // namespace codkit::game

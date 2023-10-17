@@ -9,6 +9,7 @@
 #include "address.h"
 #include "game.h"
 #include "logging.h"
+#include "msg.h"
 
 extern char **Args;
 
@@ -17,25 +18,29 @@ namespace codkit::detours {
         address::Console_WndProc
     );
     static auto log = ref<void(int, const char *, ...)>(address::DefLog);
+    static auto CommandHandler = ref<void()>(address::ServerHandler);
 
     static CALLBACK LRESULT
-    WndProc_impl(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    impl_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (uMsg == WM_USER) {
             try {
-                (*reinterpret_cast<std::function<void()> *>(wParam))();
-            } catch (const std::runtime_error& error) {
-                MessageBox(nullptr, error.what(), "Exception", MB_OK);
+                if (lParam) {
+                    *(std::exception_ptr *)lParam = nullptr;
+                }
+                return (*reinterpret_cast<std::function<int()> *>(wParam))();
             } catch (...) {
-                MessageBox(nullptr, "threw", nullptr, MB_OK);
+                if (lParam) {
+                    *(std::exception_ptr *)lParam = std::current_exception();
+                }
+                return -1;
             }
-            return 0;
         }
 
         return WndProc(hWnd, uMsg, wParam, lParam);
     }
 
     // Replacement logger since their built-in crashes on long lines.
-    static void log_impl(int d, const char *fmt, ...) {
+    static void impl_log(int d, const char *fmt, ...) {
         char buf[4096];
         va_list args;
         va_start(args, fmt);
@@ -50,15 +55,59 @@ namespace codkit::detours {
         log(d, "%s", buf);
     }
 
-    void run_on_main_thread(const std::function<void()> &function) {
-        SendMessage(game::g_console_window, WM_USER, (WPARAM)&function, 0);
+    static void server_command_inner(const char *s) noexcept {
+        try {
+            msg::HandleCommand(s);
+        } catch (...) {
+            // We'll throw away any exceptions.
+        }
     }
 
-    void initialize() {
+    __attribute__((naked)) static void impl_CommandHandler() {
+        __asm__ __volatile__("mov %%eax, %%edi;"
+                             "push %%edi;"
+                             :
+                             :
+                             : "edi");
+
+        // Maybe do some more saving of registers.
+        __asm__ __volatile__("and $0x3f, %%edi;"
+                             "shl $0xa, %%edi;"
+                             "add %0, %%edi;"
+                             "push %%edi;"
+                             "call %P1;"
+                             "add $4, %%esp;"
+                             "pop %%eax;"
+                             "call *%2;"
+                             "ret;"
+                             :
+                             : "a"(&game::gCommandQueue),
+                               "i"(+[](const char *s) {
+                                   try {
+                                       msg::HandleCommand(s);
+                                   } catch (...) {
+                                       // We'll throw away any exceptions.
+                                   }
+                               }),
+                               //"m"(server_command_inner),
+                               "m"(CommandHandler)
+                             :);
+    }
+
+    void Enqueue(const std::function<int()> &function) {
+        std::exception_ptr e;
+        SendMessage(game::gConsoleWnd, WM_USER, (WPARAM)&function, (LPARAM)&e);
+        if (e) {
+            std::rethrow_exception(e);
+        }
+    }
+
+    void Initialize() {
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
-        DetourAttach(&log, log_impl);
-        DetourAttach(&WndProc, WndProc_impl);
+        DetourAttach(&log, impl_log);
+        DetourAttach(&WndProc, impl_WndProc);
+        DetourAttach(&CommandHandler, impl_CommandHandler);
         DetourTransactionCommit();
     }
 } // namespace codkit::detours

@@ -64,7 +64,16 @@ add_library(Detours OBJECT
         vendor/Detours/src/creatwth.cpp
 )
 
-add_executable(codkit src/proc.cpp src/main.cpp src/lua.cpp src/game.cpp src/detours.cpp src/httpserver.cpp)
+add_executable(codkit
+        src/proc.cpp
+        src/main.cpp
+        src/lua/base.cpp
+        src/game.cpp
+        src/detours.cpp
+        src/lua/httpserver.cpp
+        src/msg.cpp
+        src/logging.cpp
+)
 
 target_link_libraries(codkit PRIVATE
         m
@@ -78,5 +87,6 @@ target_include_directories(codkit PUBLIC
         vendor/Detours/src
         vendor/cpp-httplib
         vendor/sol2/include
+        vendor/json/single_include
 )
 
